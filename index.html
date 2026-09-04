@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Điều Phối Logistics Chuyên Nghiệp</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2 style="border: none; background: transparent; text-align: center; color: #1e3a8a; font-size: 20px; margin-bottom: 5px;">🔒 BẢO MẬT HỆ THỐNG</h2>
+            <p style="text-align: center; color: #64748b; font-size: 13px; margin-bottom: 20px;">Vui lòng nhập mật khẩu quản trị</p>
+            <input type="password" id="admin-password" placeholder="Nhập mật khẩu..." onkeypress="if(event.key === 'Enter') loginAdmin()">
+            <button class="btn-add" style="margin-top: 15px;" onclick="loginAdmin()">Đăng Nhập</button>
+        </div>
+    </div>
+
+    <div id="sidebar">
+        <button onclick="logoutAdmin()" style="background: #ef4444; margin-bottom: 10px; padding: 8px;">🚪 ĐĂNG XUẤT</button>
+        
+        <button class="btn-master" onclick="openDanhBa()">📇 QUẢN LÝ TỔNG DANH BẠ KHÁCH HÀNG</button>
+        <button id="btn-toggle-master-map" class="btn-master" style="background-color: #64748b; margin-bottom: 15px;" onclick="toggleMasterDataMap()">👀 HIỆN TOÀN BỘ DANH BẠ LÊN BẢN ĐỒ</button>
+
+        <div class="section-box">
+            <h2>🚚 1. QUẢN LÝ XE & KHO HÀNG</h2>
+            <div style="margin-top: 10px;">
+                <label style="font-size: 11px; font-weight: bold; color: #666;">Danh sách Xe:</label>
+                <div class="flex-input" style="margin-top: 4px;">
+                    <input type="text" id="new-vehicle-name" placeholder="Tên xe (VD: Xe Tải 1)...">
+                    <button class="btn-add" onclick="addNewVehicle()">Tạo</button>
+                </div>
+                <div id="vehicle-tags"></div>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px dashed #ccc; margin: 10px 0;">
+            
+            <div>
+                <label style="font-size: 11px; font-weight: bold; color: #666;">Thêm Kho (Link Maps / Tọa độ):</label>
+                <div class="flex-input" style="margin-top: 4px;">
+                    <input type="text" id="warehouse-coords" placeholder="VD: 21.028, 105.854">
+                    <button class="btn-add" onclick="addWarehouse()">Lưu Kho</button>
+                </div>
+                <div id="warehouse-list" style="font-size: 11px; margin-top: 5px;"></div>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <h2>👥 2. PHÂN ĐƠN LÊN XE</h2>
+            
+            <div style="background: #e0f2fe; padding: 10px; border-radius: 4px; border: 1px solid #bae6fd; margin-top: 10px;">
+                <label style="font-size: 12px; font-weight: bold; color: #1e3a8a; margin-bottom: 5px; display: block;">⚡ TÌM NHANH TRONG DANH BẠ</label>
+                <div class="flex-input autocomplete-container">
+                    <input type="text" id="quick-search-input" placeholder="Gõ Tên KH hoặc SĐT..." oninput="handleQuickSearch()">
+                    <select id="quick-vehicle-select" style="flex: 0.6; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
+                    <ul id="quick-search-results" class="autocomplete-list"></ul>
+                </div>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 10px; border-radius: 4px; border: 1px solid #e2e8f0; margin-top: 10px;">
+                <label style="font-size: 12px; font-weight: bold; color: #0f172a; margin-bottom: 5px; display: block;">⚡ NẠP HÀNG LOẠT (TỰ DÒ DANH BẠ)</label>
+                <div class="input-group">
+                    <textarea id="bulk-input" placeholder="Dán danh sách SĐT (hoặc Mã KH) vào đây... Hệ thống sẽ tự quét và gắn lên xe!"></textarea>
+                </div>
+                <div class="flex-input">
+                    <select id="bulk-vehicle-select" style="flex: 2; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
+                    <button class="btn-add" style="flex: 1; background: #0ea5e9;" onclick="bulkAddCustomers()">📥 Nạp Đơn</button>
+                </div>
+            </div>
+            
+            <div style="text-align: center; font-size: 11px; color: #94a3b8; margin: 8px 0;">--- HOẶC THÊM THỦ CÔNG 1 ĐƠN ---</div>
+            
+            <div class="flex-input">
+                <input type="text" id="single-name" placeholder="SĐT hoặc Tên KH..." style="flex: 1;">
+                <input type="text" id="single-coords" placeholder="Tọa độ (Tùy chọn)" style="flex: 1;">
+            </div>
+            <div class="flex-input">
+                <select id="single-vehicle-select" style="flex: 2; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
+                <button class="btn-add" style="flex: 1;" onclick="addSingleCustomer()">+ Thêm</button>
+            </div>
+        </div>
+
+        <div class="section-box" style="background: #f0fdf4; border-color: #bbf7d0;">
+            <h2>🚀 3. TỐI ƯU LỘ TRÌNH ĐA LUỒNG</h2>
+            <div class="input-group" style="margin-top: 10px;">
+                <select id="filter-vehicle-select" onchange="onFilterChange()" style="font-weight: bold; color: #166534; padding: 10px; border-radius: 4px;"></select>
+            </div>
+            <button class="btn-calc" onclick="calculateOptimizedRoute()">🚀 BẮT ĐẦU VẼ ĐƯỜNG</button>
+        </div>
+
+        <div id="customer-list" style="flex-grow: 1; display: flex; flex-direction: column;">
+            <h3 style="font-size: 14px; margin: 0 0 10px 0; display: flex; justify-content: space-between;">
+                Danh sách (<span id="count-kh">0</span> đơn)
+                <div>
+                    <button style="width: auto; padding: 4px 8px; font-size: 11px; background: #64748b; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="toggleSelectAll(true)">Chọn tất cả</button>
+                    <button style="width: auto; padding: 4px 8px; font-size: 11px; background: #64748b; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="toggleSelectAll(false)">Bỏ chọn tất cả</button>
+                </div>
+            </h3>
+            
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Lọc đơn trên xe..." oninput="onSearchInput()">
+            </div>
+            
+            <ul id="list-ul" style="list-style-type: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto;"></ul>
+        </div>
+        
+        <button class="btn-clear" style="background-color: #059669; padding: 14px; margin-top: 15px; border-radius: 6px; box-shadow: 0 4px 6px rgba(5,150,105,0.3);" onclick="exportAndClearData()">📊 CHỐT CA & XUẤT BÁO CÁO EXCEL</button>
+        
+        <div style="margin-top: 15px; padding: 12px; background: #e2e8f0; border-radius: 4px; border: 1px solid #cbd5e1;">
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: bold; color: #333; margin-bottom: 8px;">
+                <input type="checkbox" id="show-labels-chk" checked onchange="toggleMapLabels()" style="margin: 0; width: 16px; height: 16px; cursor: pointer;"> Hiện nhãn tên trên bản đồ
+            </label>
+            <div style="display: flex; gap: 5px;">
+                <select id="font-family-select" onchange="updateMapFont()" style="flex: 2; padding: 6px; font-size: 11px; border: 1px solid #ccc; border-radius: 3px; cursor: pointer;">
+                    <option value="Arial, sans-serif">Font: Arial</option>
+                    <option value="'Times New Roman', Times, serif">Font: Times</option>
+                    <option value="Tahoma, sans-serif">Font: Tahoma</option>
+                    <option value="Verdana, sans-serif">Font: Verdana</option>
+                    <option value="'Courier New', Courier, monospace">Font: Courier</option>
+                    <option value="'Comic Sans MS', cursive">Font: Comic Sans</option>
+                </select>
+                <select id="font-size-select" onchange="updateMapFont()" style="flex: 1.5; padding: 6px; font-size: 11px; border: 1px solid #ccc; border-radius: 3px; cursor: pointer;">
+                    <option value="10px">Cỡ: 10px</option>
+                    <option value="11px">Cỡ: 11px</option>
+                    <option value="12px">Cỡ: 12px</option>
+                    <option value="13px" selected>Cỡ: 13px</option>
+                    <option value="15px">Cỡ: 15px</option>
+                    <option value="18px">Cỡ: 18px</option>
+                    <option value="22px">Cỡ: 22px</option>
+                </select>
+                <input type="color" id="font-color-select" value="#0f172a" onchange="updateMapFont()" style="flex: 0.5; padding: 0; height: 28px; border: 1px solid #ccc; border-radius: 3px; cursor: pointer;">
+            </div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="danh-ba-modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding: 15px;">
+                <h2 style="border:none; padding: 0; background: transparent; font-size: 20px;">📇 KHO TỔNG DANH BẠ KHÁCH HÀNG</h2>
+                <button style="width: auto; background: #ef4444; padding: 8px 12px;" onclick="closeDanhBa()">Đóng ✖</button>
+            </div>
+            <div style="padding: 15px; flex-grow: 1; overflow-y: auto;">
+                <div style="background: #f1f5f9; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #cbd5e1;">
+                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 14px; color: #334155;">+ NẠP KHÁCH HÀNG VÀO KHO</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 11px; font-weight:bold; color:#475569;">Nhập hàng loạt từ Excel:</label>
+                            <div style="display: flex; gap: 5px; margin-top: 5px;">
+                                <input type="file" id="db-excel-file" accept=".xlsx, .xls, .csv" style="flex: 1; padding: 6px; font-size: 12px; background: white; border: 1px solid #ccc;">
+                                <button style="width: auto; background: #3b82f6; padding: 6px 15px;" onclick="importDanhBaExcel()">Nhập File</button>
+                            </div>
+                            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Quy tắc: Cột A (SĐT/Mã KH) - Cột B (Tên) - Cột C (Link Maps)</div>
+                        </div>
+                    </div>
+                    
+                    <hr style="border:0; border-top: 1px dashed #cbd5e1; margin: 10px 0;">
+                    
+                    <div style="display: flex; gap: 10px; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 11px; font-weight:bold; color:#475569;">Mã KH / SĐT (Bắt buộc):</label>
+                            <input type="text" id="db-new-ma" placeholder="098xxx..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 11px; font-weight:bold; color:#475569;">Tên Khách Hàng:</label>
+                            <input type="text" id="db-new-ten" placeholder="Anh B..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
+                        </div>
+                        <div style="flex: 2;">
+                            <label style="font-size: 11px; font-weight:bold; color:#475569;">Tọa độ / Link Maps:</label>
+                            <input type="text" id="db-new-coords" placeholder="Dán link vào đây..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
+                        </div>
+                        <button style="width: auto; background: #10b981; padding: 9px 15px;" onclick="addSingleDanhBa()">Thêm</button>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 10px;">
+                    <input type="text" id="db-search" placeholder="🔍 Tìm kiếm khách hàng đã lưu..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;" oninput="renderDanhBaList()">
+                </div>
+                
+                <div class="db-row db-header">
+                    <div>Mã KH (SĐT)</div>
+                    <div>Tên Khách Hàng</div>
+                    <div>Dữ liệu Tọa độ / Link Maps</div>
+                    <div style="text-align: center;">Thao Tác</div>
+                </div>
+                <div id="db-list-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
