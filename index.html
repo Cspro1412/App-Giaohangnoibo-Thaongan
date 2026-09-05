@@ -62,13 +62,25 @@
 
         <div class="section-box">
             <h2>👥 2. PHÂN ĐƠN LÊN XE</h2>
+
+            <!-- TÍNH NĂNG TÌM NHANH ĐƯỢC KHÔI PHỤC VÀ NÂNG CẤP UI -->
+            <div style="background: #e0f2fe; padding: 10px; border-radius: 4px; border: 1px solid #bae6fd; margin-top: 10px;">
+                <label style="font-size: 12px; font-weight: bold; color: #1e3a8a; margin-bottom: 5px; display: block;">⚡ TÌM NHANH TRONG DANH BẠ</label>
+                <div class="autocomplete-container" style="margin-bottom: 8px;">
+                    <input type="text" id="quick-search-input" placeholder="Gõ Tên KH hoặc SĐT..." oninput="handleQuickSearch()" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+                    <ul id="quick-search-results" class="autocomplete-list"></ul>
+                </div>
+                <div class="flex-input">
+                    <select id="quick-tuyen-select" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
+                    <select id="quick-vehicle-select" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
+                </div>
+            </div>
             
             <div style="background: #f8fafc; padding: 10px; border-radius: 4px; border: 1px solid #e2e8f0; margin-top: 10px;">
                 <label style="font-size: 12px; font-weight: bold; color: #0f172a; margin-bottom: 5px; display: block;">⚡ NẠP HÀNG LOẠT (TỰ DÒ DANH BẠ)</label>
                 <div class="input-group">
                     <textarea id="bulk-input" placeholder="Dán danh sách SĐT (hoặc Mã KH) vào đây... Hệ thống sẽ tự quét và gắn lên xe!"></textarea>
                 </div>
-                <!-- ĐÃ SỬA LỖI UI: Chuyển ô chọn lên 1 hàng, đẩy nút xuống dưới -->
                 <div class="flex-input">
                     <select id="bulk-tuyen-select" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
                     <select id="bulk-vehicle-select" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
@@ -82,7 +94,6 @@
                 <input type="text" id="single-name" placeholder="SĐT hoặc Tên KH..." style="flex: 1;">
                 <input type="text" id="single-coords" placeholder="Tọa độ (Tùy chọn)" style="flex: 1;">
             </div>
-            <!-- ĐÃ SỬA LỖI UI: Chuyển ô chọn lên 1 hàng, đẩy nút xuống dưới -->
             <div class="flex-input">
                 <select id="single-tuyen-select" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
                 <select id="single-vehicle-select" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
@@ -156,7 +167,6 @@
                 <div style="background: #f1f5f9; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #cbd5e1;">
                     <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 14px; color: #334155;">+ NẠP KHÁCH HÀNG VÀO KHO TỔNG</h3>
                     
-                    <!-- Nút Nhập Excel đã được trả lại -->
                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                         <div style="flex: 1;">
                             <label style="font-size: 11px; font-weight:bold; color:#475569;">Nhập hàng loạt từ Excel:</label>
