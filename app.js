@@ -4,7 +4,6 @@ let map, warehouses = [], customers = [], masterData = [], routeLayers = [];
 let customerMarkersLayer, masterDataMarkersLayer;
 let isShowingMasterData = false;
 
-// Đã loại bỏ code gắn cứng, sẽ tải từ API
 let vehicles = [];
 let tuyens = [];
 let currentVehicleFilter = "all";
@@ -116,12 +115,21 @@ async function deleteTuyen(tName) {
 function updateVehicleUI() {
     let tagsDiv = document.getElementById("vehicle-tags");
     tagsDiv.innerHTML = vehicles.map(v => `<span class="route-chip">${v} <span class="route-delete" onclick="deleteVehicle('${v}')">×</span></span>`).join('');
-    
     let options = vehicles.map(v => `<option value="${v}">${v}</option>`).join('');
     let optionWithDefault = `<option value="">-- Chưa Phân Xe --</option>` + options;
     
-    document.getElementById("bulk-vehicle-select").innerHTML = optionWithDefault;
-    document.getElementById("single-vehicle-select").innerHTML = optionWithDefault;
+    // Ghi nhớ giá trị đang chọn để chống giật
+    let bulkSel = document.getElementById("bulk-vehicle-select");
+    let singleSel = document.getElementById("single-vehicle-select");
+    let oldBulk = bulkSel ? bulkSel.value : "";
+    let oldSingle = singleSel ? singleSel.value : "";
+    
+    if(bulkSel) bulkSel.innerHTML = optionWithDefault;
+    if(singleSel) singleSel.innerHTML = optionWithDefault;
+    
+    // Phục hồi giá trị
+    if (oldBulk) bulkSel.value = oldBulk;
+    if (oldSingle) singleSel.value = oldSingle;
     
     let filterSelect = document.getElementById("filter-vehicle-select");
     filterSelect.innerHTML = `<option value="all">🌍 HIỂN THỊ TẤT CẢ XE</option>` + vehicles.map(v => `<option value="${v}">🚛 Xe: ${v}</option>`).join('');
@@ -131,19 +139,30 @@ function updateVehicleUI() {
 function updateTuyenUI() {
     let tagsDiv = document.getElementById("tuyen-tags");
     tagsDiv.innerHTML = tuyens.map(t => `<span class="route-chip" style="background:#fef3c7; border-color:#fcd34d;">${t} <span class="route-delete" onclick="deleteTuyen('${t}')">×</span></span>`).join('');
-    
     let options = tuyens.map(t => `<option value="${t}">${t}</option>`).join('');
     let optionWithDefault = `<option value="">-- Chọn Tuyến (Tùy chọn) --</option>` + options;
     let optionWithAll = `<option value="all">🌍 TẤT CẢ CÁC TUYẾN</option>` + options;
     
-    document.getElementById("bulk-tuyen-select").innerHTML = optionWithDefault;
-    document.getElementById("single-tuyen-select").innerHTML = optionWithDefault;
+    // Ghi nhớ giá trị đang chọn để chống giật
+    let bulkSel = document.getElementById("bulk-tuyen-select");
+    let singleSel = document.getElementById("single-tuyen-select");
+    let dbNewSel = document.getElementById("db-new-tuyen");
+    let oldBulk = bulkSel ? bulkSel.value : "";
+    let oldSingle = singleSel ? singleSel.value : "";
+    let oldDbNew = dbNewSel ? dbNewSel.value : "";
     
-    let dbSelect = document.getElementById("db-new-tuyen");
-    if(dbSelect) dbSelect.innerHTML = optionWithDefault;
+    if(bulkSel) bulkSel.innerHTML = optionWithDefault;
+    if(singleSel) singleSel.innerHTML = optionWithDefault;
+    if(dbNewSel) dbNewSel.innerHTML = optionWithDefault;
+    
+    // Phục hồi giá trị
+    if (oldBulk) bulkSel.value = oldBulk;
+    if (oldSingle) singleSel.value = oldSingle;
+    if (oldDbNew) dbNewSel.value = oldDbNew;
     
     let dbFilter = document.getElementById("db-filter-tuyen");
-    if(dbFilter) dbFilter.innerHTML = optionWithAll;
+    let oldDbFilter = dbFilter ? dbFilter.value : "all";
+    if(dbFilter) { dbFilter.innerHTML = optionWithAll; dbFilter.value = oldDbFilter; }
     
     let filterSelect = document.getElementById("filter-tuyen-select");
     filterSelect.innerHTML = optionWithAll;
@@ -369,7 +388,7 @@ function renderMasterDataOnMap() {
     });
 }
 
-function saveLocalConfig() { localStorage.setItem('GiaoHangConfig', JSON.stringify({ warehouses: warehouses })); } // Đã bỏ vehicles
+function saveLocalConfig() { localStorage.setItem('GiaoHangConfig', JSON.stringify({ warehouses: warehouses })); } 
 
 async function fetchCustomersFromAPI() {
     if (document.querySelector('.dragging')) { setTimeout(fetchCustomersFromAPI, 2000); return; }
@@ -805,6 +824,39 @@ async function deleteDanhBa(id) {
         let result = await res.json();
         if (result.thanh_cong) fetchDanhBa(); else alert("❌ Lỗi xóa: " + result.loi);
     } catch (e) { alert("⚠️ Lỗi kết nối API!"); }
+}
+
+async function importDanhBaExcel() {
+    let fileInput = document.getElementById('db-excel-file');
+    let file = fileInput.files[0];
+    if (!file) { alert("Vui lòng chọn file Excel!"); return; }
+    let reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            let workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+            let rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+            let danh_sach = [];
+            rows.forEach((row, index) => {
+                if (index === 0 && row[0] && typeof row[0] === 'string' && (row[0].toLowerCase().includes("sdt") || row[0].toLowerCase().includes("mã"))) return;
+                if (row.length >= 1 && row[0]) {
+                    danh_sach.push({ 
+                        ma_khach: row[0].toString().trim(), 
+                        ten_khach: (row[1] ? row[1].toString().trim() : ""), 
+                        du_lieu_goc: (row[2] ? row[2].toString().trim() : ""),
+                        tuyen: (row[3] ? row[3].toString().trim() : "")
+                    });
+                }
+            });
+            if (danh_sach.length > 0) {
+                document.getElementById('db-excel-file').disabled = true;
+                let res = await fetch(`${API_URL}/api/nhap-danh-ba-excel`, { method: "POST", headers: { "Content-Type": "application/json"}, body: JSON.stringify({ danh_sach: danh_sach }) });
+                let result = await res.json();
+                if (result.thanh_cong) { alert("✅ " + result.thong_bao); await fetchDanhBaSilently(); await fetchDanhBa(); } else { alert("❌ Lỗi: " + result.loi); }
+                document.getElementById('db-excel-file').disabled = false; fileInput.value = "";
+            } else { alert("Không tìm thấy dữ liệu hợp lệ trong file Excel."); }
+        } catch (error) { alert("Lỗi đọc file Excel."); }
+    };
+    reader.readAsArrayBuffer(file);
 }
 
 async function addSingleDanhBa() {
