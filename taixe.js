@@ -18,6 +18,7 @@ function connectWebSocket() {
     ws.onmessage = function(event) {
         let msg = JSON.parse(event.data);
         if (msg.type === "REFRESH_LIST") refreshData(); 
+        else if (msg.type === "REFRESH_VEHICLES") fetchVehiclesForDriver(); // Tự động cập nhật danh sách xe
     };
     ws.onclose = function() { setTimeout(connectWebSocket, 3000); };
 }
@@ -32,22 +33,35 @@ function switchTab(tab) {
 
 async function initApp() {
     initMap();
+    await fetchVehiclesForDriver(); // Lấy danh sách xe chuẩn từ Đám mây
     await refreshData(); 
     
-    let vehiclesSet = [...new Set(allCustomers.map(c => c.ten_xe))];
-    let select = document.getElementById("driver-vehicle-select");
-    select.innerHTML = '<option value="">-- Chọn xe --</option>' + vehiclesSet.map(v => `<option value="${v}">${v}</option>`).join('');
-    
-    let saved = localStorage.getItem("DriverSelectedVehicle");
-    if (saved && vehiclesSet.includes(saved)) {
-        select.value = saved;
-        loadDriverData(false);
-    } else {
-        document.getElementById("loading").innerText = "Hãy chọn xe để nhận lộ trình!";
-    }
-
     connectWebSocket(); 
     startLiveTracking();
+}
+
+// HÀM MỚI: TẢI DANH SÁCH XE TỪ SUPABASE
+async function fetchVehiclesForDriver() {
+    try {
+        let res = await fetch(`${API_URL}/api/danh-sach-xe`);
+        let result = await res.json();
+        if (result.thanh_cong) {
+            let select = document.getElementById("driver-vehicle-select");
+            let saved = localStorage.getItem("DriverSelectedVehicle");
+            let currentValue = select.value || saved;
+            
+            select.innerHTML = '<option value="">-- Chọn xe --</option>' + result.data.map(v => `<option value="${v}">${v}</option>`).join('');
+            
+            if (currentValue && result.data.includes(currentValue)) {
+                select.value = currentValue;
+                loadDriverData(false);
+            } else {
+                document.getElementById("loading").innerText = "Hãy chọn xe để nhận lộ trình!";
+            }
+        }
+    } catch(e) {
+        console.error("Lỗi tải danh sách xe");
+    }
 }
 
 function initMap() {
@@ -105,13 +119,17 @@ function loadDriverData(isAutoRefresh = false) {
         let badgeClass = isCurrent ? "stt-badge stt-next" : "stt-badge";
         let badgeText = isCurrent ? `ĐANG ĐẾN ĐIỂM (#${index+1})` : `Điểm dừng #${index+1}`;
         
+        let tuyenBadge = task.tuyen ? `<span style="font-size:11px; font-weight:bold; background:#fef3c7; color:#d97706; padding: 3px 6px; border-radius: 4px; border: 1px solid #fcd34d; margin-left: 8px;">📍 ${task.tuyen}</span>` : '';
         let noteBadge = task.ghi_chu ? `<div style="font-size: 12px; color: #ea580c; background: #ffedd5; padding: 6px; border-radius: 4px; margin-bottom: 8px; border: 1px dashed #fdba74;">📝 Ghi chú: <b>${task.ghi_chu}</b></div>` : '';
         
         let card = document.createElement("div");
         card.className = `trip-card ${cardClass}`;
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
-                <div class="${badgeClass}" style="margin-bottom:0;">${badgeText}</div>
+                <div style="display:flex; align-items:center;">
+                    <div class="${badgeClass}" style="margin-bottom:0;">${badgeText}</div>
+                    ${tuyenBadge}
+                </div>
                 <div onclick="promptNote(${task.id})" style="cursor:pointer; background:#e2e8f0; padding:4px 8px; border-radius:15px; font-size:11px; font-weight:bold; color:#475569; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">📝 Ghi chú</div>
             </div>
             <div class="customer-name">${task.ten}</div>
@@ -191,7 +209,6 @@ async function updateNoteAPI(khId, note) {
     let task = allCustomers.find(c => c.id === khId);
     if (task) {
         task.ghi_chu = note;
-        // VÁ LỖI 1: Bắt buộc lưu vào bộ nhớ tạm ngay lập tức để vòng lặp 60s không làm mất
         localStorage.setItem('cached_customers', JSON.stringify(allCustomers));
     }
     loadDriverData(true); 
@@ -213,7 +230,6 @@ async function updateStatus(khId, newStatus) {
     let task = allCustomers.find(c => c.id === khId);
     if (task) {
         task.trang_thai = newStatus;
-        // VÁ LỖI 1: Bắt buộc lưu vào bộ nhớ tạm ngay lập tức để vòng lặp 60s không làm mất
         localStorage.setItem('cached_customers', JSON.stringify(allCustomers));
     }
     loadDriverData(true);
