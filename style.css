@@ -83,7 +83,6 @@ input[type="checkbox"].cust-check { width: 18px; height: 18px; margin-right: 10p
 .leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none !important; }
 .leaflet-tooltip.custom-tooltip:hover, .leaflet-tooltip.warehouse-tooltip:hover, .leaflet-tooltip.master-tooltip:hover { z-index: 9999 !important; transform: scale(1.1); transition: 0.1s; cursor: default;}
 
-.truck-marker, .truck-tooltip { transition: transform 5.0s linear !important; }
 .truck-marker { filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.4)); }
 .truck-tooltip { background: #1e293b !important; color: white !important; border: 1px solid #000 !important; font-weight: bold; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important; text-shadow: none !important; }
 
