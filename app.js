@@ -10,6 +10,9 @@ let currentVehicleFilter = "all";
 let currentTuyenFilter = "all";
 let ws; 
 
+// CỜ CHỐNG GIẬT BẢN ĐỒ (Chỉ zoom khi mới vào web hoặc cố tình lọc)
+let isUserFiltering = true; 
+
 const routeColors = ['#2563eb', '#dc2626', '#16a34a', '#d97706', '#7c3aed', '#0891b2', '#db2777'];
 const warehouseIcon = new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], tooltipAnchor: [15, -20] });
 const customerIcon = new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], tooltipAnchor: [15, -20] });
@@ -149,7 +152,8 @@ function updateVehicleUI() {
     if (oldQuick) quickSel.value = oldQuick;
     
     let filterSelect = document.getElementById("filter-vehicle-select");
-    filterSelect.innerHTML = `<option value="all">🌍 HIỂN THỊ TẤT CẢ XE</option>` + vehicles.map(v => `<option value="${v}">🚛 Xe: ${v}</option>`).join('');
+    // ĐÃ BỔ SUNG BỘ LỌC CHO ĐƠN CHƯA PHÂN XE
+    filterSelect.innerHTML = `<option value="all">🌍 HIỂN THỊ TẤT CẢ XE</option><option value="Chưa phân xe">⚠️ Đơn Chưa Phân Xe</option>` + vehicles.map(v => `<option value="${v}">🚛 Xe: ${v}</option>`).join('');
     filterSelect.value = currentVehicleFilter;
 }
 
@@ -158,7 +162,6 @@ function updateTuyenUI() {
     tagsDiv.innerHTML = tuyens.map(t => `<span class="route-chip" style="background:#fef3c7; border-color:#fcd34d;">${t} <span class="route-delete" onclick="deleteTuyen('${t}')">×</span></span>`).join('');
     let options = tuyens.map(t => `<option value="${t}">${t}</option>`).join('');
     let optionWithDefault = `<option value="">-- Chọn Tuyến (Tùy chọn) --</option>` + options;
-    let optionWithAll = `<option value="all">🌍 TẤT CẢ CÁC TUYẾN</option>` + options;
     
     let bulkSel = document.getElementById("bulk-tuyen-select"), singleSel = document.getElementById("single-tuyen-select"), quickSel = document.getElementById("quick-tuyen-select"), dbNewSel = document.getElementById("db-new-tuyen");
     let oldBulk = bulkSel ? bulkSel.value : "", oldSingle = singleSel ? singleSel.value : "", oldQuick = quickSel ? quickSel.value : "", oldDbNew = dbNewSel ? dbNewSel.value : "";
@@ -175,10 +178,11 @@ function updateTuyenUI() {
     
     let dbFilter = document.getElementById("db-filter-tuyen");
     let oldDbFilter = dbFilter ? dbFilter.value : "all";
-    if(dbFilter) { dbFilter.innerHTML = optionWithAll; dbFilter.value = oldDbFilter; }
+    if(dbFilter) { dbFilter.innerHTML = `<option value="all">🌍 TẤT CẢ CÁC TUYẾN</option>` + options; dbFilter.value = oldDbFilter; }
     
     let filterSelect = document.getElementById("filter-tuyen-select");
-    filterSelect.innerHTML = optionWithAll;
+    // ĐÃ BỔ SUNG BỘ LỌC CHO ĐƠN CHƯA PHÂN TUYẾN
+    filterSelect.innerHTML = `<option value="all">🌍 TẤT CẢ CÁC TUYẾN</option><option value="">⚠️ Đơn Chưa Phân Tuyến</option>` + options;
     filterSelect.value = currentTuyenFilter;
 }
 
@@ -288,8 +292,10 @@ function logoutAdmin() { localStorage.removeItem("admin_logged_in"); location.re
 
 async function initMap() {
     map = L.map('map').setView([21.0285, 105.8542], 13);
-    // BẢN ĐỒ GOOGLE MAPS SIÊU NHANH
-    L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { attribution: '© Google Maps' }).addTo(map);
+    
+    // Tùy chọn bản đồ CartoDB Positron (Tối giản sạch sẽ nhất)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap, © CartoDB' }).addTo(map);
+    
     customerMarkersLayer = L.layerGroup().addTo(map);
     masterDataMarkersLayer = L.layerGroup().addTo(map);
     loadFontSettings();
@@ -303,6 +309,9 @@ async function initMap() {
     await fetchVehiclesFromAPI();
     await fetchTuyensFromAPI();
     await fetchDanhBaSilently();
+    
+    // Bật cờ cho phép zoom khung nhìn ở lần load đầu tiên
+    isUserFiltering = true; 
     connectWebSocket(); 
 }
 
@@ -431,7 +440,6 @@ function extractCoords(input) {
     }
 }
 
-// FIX LỖI KHO KHÔNG LƯU ĐƯỢC
 function addWarehouse() {
     let nameInput = document.getElementById("warehouse-name");
     let name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "Kho " + (warehouses.length + 1);
@@ -446,11 +454,14 @@ function addWarehouse() {
 
 function deleteWarehouse(id) { warehouses = warehouses.filter(w => w.id !== id); saveLocalConfig(); renderCustomerList(); }
 
+// CHỐT CỜ KHI NGƯỜI DÙNG CỐ TÌNH CHUYỂN BỘ LỌC THÌ MỚI CHO ZOOM
 function onFilterChange() { 
     currentVehicleFilter = document.getElementById("filter-vehicle-select").value; 
     currentTuyenFilter = document.getElementById("filter-tuyen-select").value; 
+    isUserFiltering = true; 
     clearRoutes(); renderCustomerList(); renderMasterDataOnMap();
 }
+
 function onSearchInput() { renderCustomerList(); }
 
 async function addSingleCustomer() {
@@ -491,7 +502,6 @@ async function bulkAddCustomers() {
     } catch (e) { alert("⚠️ Không kết nối được máy chủ!"); document.getElementById("bulk-input").value = text; }
 }
 
-// FIX LỖI KHÔNG LƯU ĐƯỢC CHỈNH SỬA ĐƠN HÀNG
 async function saveCustomer(id) {
     let newName = document.getElementById(`edit-name-${id}`).value.trim();
     let newInput = document.getElementById(`edit-input-${id}`).value.trim();
@@ -511,10 +521,7 @@ async function saveCustomer(id) {
         if (!result.thanh_cong) { 
             alert("❌ Lỗi cập nhật: " + result.loi); 
             if(btn) btn.innerText = "Lưu";
-        } else {
-            // Tải lại để thoát chế độ chỉnh sửa
-            fetchCustomersFromAPI(); 
-        }
+        } else { fetchCustomersFromAPI(); }
     } catch(e) { alert("⚠️ Lỗi kết nối đến máy chủ!"); if(btn) btn.innerText = "Lưu"; }
 }
 
@@ -694,7 +701,11 @@ function renderCustomerList(editId = null) {
         ul.appendChild(li);
     });
 
-    if (editId === null && boundsPoints.length > 1) map.fitBounds(boundsPoints, { padding: [50, 50] });
+    // CHỐNG GIẬT BẢN ĐỒ: Chỉ thu phóng map khi người dùng ấn nút Lọc, hoặc mở web lần đầu.
+    if (editId === null && boundsPoints.length > 1 && isUserFiltering) { 
+        map.fitBounds(boundsPoints, { padding: [50, 50] }); 
+        isUserFiltering = false; // Tắt cờ sau khi zoom xong
+    }
 }
 
 async function calculateOptimizedRoute() {
