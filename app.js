@@ -293,8 +293,10 @@ function logoutAdmin() { localStorage.removeItem("admin_logged_in"); location.re
 async function initMap() {
     map = L.map('map').setView([21.0285, 105.8542], 13);
     
-    // Tùy chọn bản đồ CartoDB Positron (Tối giản sạch sẽ nhất)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap, © CartoDB' }).addTo(map);
+    // chỉnh API bản đồ)
+    L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { 
+    attribution: '© Google Maps' 
+}).addTo(map);
     
     customerMarkersLayer = L.layerGroup().addTo(map);
     masterDataMarkersLayer = L.layerGroup().addTo(map);
