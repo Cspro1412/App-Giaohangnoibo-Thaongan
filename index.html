@@ -30,7 +30,6 @@
         <div class="section-box">
             <h2>🚚 1. QUẢN LÝ XE, TUYẾN & KHO</h2>
             
-            <!-- Quản lý Xe -->
             <div style="margin-top: 10px;">
                 <label style="font-size: 11px; font-weight: bold; color: #666;">Danh sách Xe:</label>
                 <div class="flex-input" style="margin-top: 4px;">
@@ -40,7 +39,6 @@
                 <div id="vehicle-tags"></div>
             </div>
 
-            <!-- Quản lý Tuyến -->
             <div style="margin-top: 10px;">
                 <label style="font-size: 11px; font-weight: bold; color: #666;">Danh sách Tuyến (Cụm KH):</label>
                 <div class="flex-input" style="margin-top: 4px;">
@@ -70,11 +68,12 @@
                 <div class="input-group">
                     <textarea id="bulk-input" placeholder="Dán danh sách SĐT (hoặc Mã KH) vào đây... Hệ thống sẽ tự quét và gắn lên xe!"></textarea>
                 </div>
+                <!-- ĐÃ SỬA LỖI UI: Chuyển ô chọn lên 1 hàng, đẩy nút xuống dưới -->
                 <div class="flex-input">
                     <select id="bulk-tuyen-select" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
                     <select id="bulk-vehicle-select" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
-                    <button class="btn-add" style="flex: 1; background: #0ea5e9;" onclick="bulkAddCustomers()">📥 Nạp Đơn</button>
                 </div>
+                <button class="btn-add" style="width: 100%; margin-top: 5px; background: #0ea5e9; padding: 10px;" onclick="bulkAddCustomers()">📥 Nạp Đơn</button>
             </div>
             
             <div style="text-align: center; font-size: 11px; color: #94a3b8; margin: 8px 0;">--- HOẶC THÊM THỦ CÔNG 1 ĐƠN ---</div>
@@ -83,11 +82,12 @@
                 <input type="text" id="single-name" placeholder="SĐT hoặc Tên KH..." style="flex: 1;">
                 <input type="text" id="single-coords" placeholder="Tọa độ (Tùy chọn)" style="flex: 1;">
             </div>
+            <!-- ĐÃ SỬA LỖI UI: Chuyển ô chọn lên 1 hàng, đẩy nút xuống dưới -->
             <div class="flex-input">
-                <select id="single-tuyen-select" style="flex: 1.5; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
-                <select id="single-vehicle-select" style="flex: 1.5; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
-                <button class="btn-add" style="flex: 1;" onclick="addSingleCustomer()">+ Thêm</button>
+                <select id="single-tuyen-select" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
+                <select id="single-vehicle-select" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
             </div>
+            <button class="btn-add" style="width: 100%; margin-top: 5px; padding: 10px;" onclick="addSingleCustomer()">+ Thêm 1 Đơn</button>
         </div>
 
         <div class="section-box" style="background: #f0fdf4; border-color: #bbf7d0;">
@@ -155,24 +155,39 @@
             <div style="padding: 15px; flex-grow: 1; overflow-y: auto;">
                 <div style="background: #f1f5f9; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #cbd5e1;">
                     <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 14px; color: #334155;">+ NẠP KHÁCH HÀNG VÀO KHO TỔNG</h3>
-                    <div style="display: flex; gap: 10px; align-items: flex-end;">
+                    
+                    <!-- Nút Nhập Excel đã được trả lại -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                         <div style="flex: 1;">
+                            <label style="font-size: 11px; font-weight:bold; color:#475569;">Nhập hàng loạt từ Excel:</label>
+                            <div style="display: flex; gap: 5px; margin-top: 5px;">
+                                <input type="file" id="db-excel-file" accept=".xlsx, .xls, .csv" style="flex: 1; padding: 6px; font-size: 12px; background: white; border: 1px solid #ccc;">
+                                <button style="width: auto; background: #3b82f6; padding: 6px 15px;" onclick="importDanhBaExcel()">Nhập File</button>
+                            </div>
+                            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Quy tắc: Cột A (SĐT/Mã KH) - Cột B (Tên) - Cột C (Link Maps) - <b>Cột D (Tên Tuyến - Tùy chọn)</b></div>
+                        </div>
+                    </div>
+                    
+                    <hr style="border:0; border-top: 1px dashed #cbd5e1; margin: 10px 0;">
+                    
+                    <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 150px;">
                             <label style="font-size: 11px; font-weight:bold; color:#475569;">Mã KH / SĐT (Bắt buộc):</label>
                             <input type="text" id="db-new-ma" placeholder="098xxx..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
                         </div>
-                        <div style="flex: 1;">
+                        <div style="flex: 1; min-width: 150px;">
                             <label style="font-size: 11px; font-weight:bold; color:#475569;">Tên Khách Hàng:</label>
                             <input type="text" id="db-new-ten" placeholder="Anh B..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
                         </div>
-                        <div style="flex: 1;">
+                        <div style="flex: 1; min-width: 150px;">
                             <label style="font-size: 11px; font-weight:bold; color:#475569;">Gán Tuyến Cố Định:</label>
                             <select id="db-new-tuyen" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;"></select>
                         </div>
-                        <div style="flex: 1.5;">
+                        <div style="flex: 2; min-width: 200px;">
                             <label style="font-size: 11px; font-weight:bold; color:#475569;">Tọa độ / Link Maps:</label>
                             <input type="text" id="db-new-coords" placeholder="Dán link vào đây..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
                         </div>
-                        <button style="width: auto; background: #10b981; padding: 9px 15px;" onclick="addSingleDanhBa()">Thêm</button>
+                        <button style="width: auto; background: #10b981; padding: 9px 15px; margin-top: 5px;" onclick="addSingleDanhBa()">Thêm</button>
                     </div>
                 </div>
                 
