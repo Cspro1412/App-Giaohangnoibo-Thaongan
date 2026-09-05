@@ -28,14 +28,26 @@
         <button id="btn-toggle-master-map" class="btn-master" style="background-color: #64748b; margin-bottom: 15px;" onclick="toggleMasterDataMap()">👀 HIỆN TOÀN BỘ DANH BẠ LÊN BẢN ĐỒ</button>
 
         <div class="section-box">
-            <h2>🚚 1. QUẢN LÝ XE & KHO HÀNG</h2>
+            <h2>🚚 1. QUẢN LÝ XE, TUYẾN & KHO</h2>
+            
+            <!-- Quản lý Xe -->
             <div style="margin-top: 10px;">
                 <label style="font-size: 11px; font-weight: bold; color: #666;">Danh sách Xe:</label>
                 <div class="flex-input" style="margin-top: 4px;">
                     <input type="text" id="new-vehicle-name" placeholder="Tên xe (VD: Xe Tải 1)...">
-                    <button class="btn-add" onclick="addNewVehicle()">Tạo</button>
+                    <button class="btn-add" onclick="addNewVehicle()">Tạo Xe</button>
                 </div>
                 <div id="vehicle-tags"></div>
+            </div>
+
+            <!-- Quản lý Tuyến -->
+            <div style="margin-top: 10px;">
+                <label style="font-size: 11px; font-weight: bold; color: #666;">Danh sách Tuyến (Cụm KH):</label>
+                <div class="flex-input" style="margin-top: 4px;">
+                    <input type="text" id="new-tuyen-name" placeholder="Tên Tuyến (VD: Tuyến Ba Đình)...">
+                    <button class="btn-add" style="background-color: #d97706;" onclick="addNewTuyen()">Tạo Tuyến</button>
+                </div>
+                <div id="tuyen-tags"></div>
             </div>
             
             <hr style="border: 0; border-top: 1px dashed #ccc; margin: 10px 0;">
@@ -53,22 +65,14 @@
         <div class="section-box">
             <h2>👥 2. PHÂN ĐƠN LÊN XE</h2>
             
-            <div style="background: #e0f2fe; padding: 10px; border-radius: 4px; border: 1px solid #bae6fd; margin-top: 10px;">
-                <label style="font-size: 12px; font-weight: bold; color: #1e3a8a; margin-bottom: 5px; display: block;">⚡ TÌM NHANH TRONG DANH BẠ</label>
-                <div class="flex-input autocomplete-container">
-                    <input type="text" id="quick-search-input" placeholder="Gõ Tên KH hoặc SĐT..." oninput="handleQuickSearch()">
-                    <select id="quick-vehicle-select" style="flex: 0.6; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
-                    <ul id="quick-search-results" class="autocomplete-list"></ul>
-                </div>
-            </div>
-            
             <div style="background: #f8fafc; padding: 10px; border-radius: 4px; border: 1px solid #e2e8f0; margin-top: 10px;">
                 <label style="font-size: 12px; font-weight: bold; color: #0f172a; margin-bottom: 5px; display: block;">⚡ NẠP HÀNG LOẠT (TỰ DÒ DANH BẠ)</label>
                 <div class="input-group">
                     <textarea id="bulk-input" placeholder="Dán danh sách SĐT (hoặc Mã KH) vào đây... Hệ thống sẽ tự quét và gắn lên xe!"></textarea>
                 </div>
                 <div class="flex-input">
-                    <select id="bulk-vehicle-select" style="flex: 2; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
+                    <select id="bulk-tuyen-select" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
+                    <select id="bulk-vehicle-select" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
                     <button class="btn-add" style="flex: 1; background: #0ea5e9;" onclick="bulkAddCustomers()">📥 Nạp Đơn</button>
                 </div>
             </div>
@@ -80,17 +84,19 @@
                 <input type="text" id="single-coords" placeholder="Tọa độ (Tùy chọn)" style="flex: 1;">
             </div>
             <div class="flex-input">
-                <select id="single-vehicle-select" style="flex: 2; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
+                <select id="single-tuyen-select" style="flex: 1.5; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
+                <select id="single-vehicle-select" style="flex: 1.5; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
                 <button class="btn-add" style="flex: 1;" onclick="addSingleCustomer()">+ Thêm</button>
             </div>
         </div>
 
         <div class="section-box" style="background: #f0fdf4; border-color: #bbf7d0;">
-            <h2>🚀 3. TỐI ƯU LỘ TRÌNH ĐA LUỒNG</h2>
-            <div class="input-group" style="margin-top: 10px;">
-                <select id="filter-vehicle-select" onchange="onFilterChange()" style="font-weight: bold; color: #166534; padding: 10px; border-radius: 4px;"></select>
+            <h2>🚀 3. BỘ LỌC & TỐI ƯU LỘ TRÌNH</h2>
+            <div class="flex-input" style="margin-top: 10px;">
+                <select id="filter-vehicle-select" onchange="onFilterChange()" style="flex: 1; font-weight: bold; color: #166534; padding: 8px; border-radius: 4px;"></select>
+                <select id="filter-tuyen-select" onchange="onFilterChange()" style="flex: 1; font-weight: bold; color: #b45309; padding: 8px; border-radius: 4px;"></select>
             </div>
-            <button class="btn-calc" onclick="calculateOptimizedRoute()">🚀 BẮT ĐẦU VẼ ĐƯỜNG</button>
+            <button class="btn-calc" style="margin-top: 8px;" onclick="calculateOptimizedRoute()">🚀 BẮT ĐẦU VẼ ĐƯỜNG</button>
         </div>
 
         <div id="customer-list" style="flex-grow: 1; display: flex; flex-direction: column;">
@@ -103,7 +109,7 @@
             </h3>
             
             <div class="search-box">
-                <input type="text" id="search-input" placeholder="Lọc đơn trên xe..." oninput="onSearchInput()">
+                <input type="text" id="search-input" placeholder="Tìm tên/SĐT trong danh sách..." oninput="onSearchInput()">
             </div>
             
             <ul id="list-ul" style="list-style-type: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto;"></ul>
@@ -148,20 +154,7 @@
             </div>
             <div style="padding: 15px; flex-grow: 1; overflow-y: auto;">
                 <div style="background: #f1f5f9; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #cbd5e1;">
-                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 14px; color: #334155;">+ NẠP KHÁCH HÀNG VÀO KHO</h3>
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <div style="flex: 1;">
-                            <label style="font-size: 11px; font-weight:bold; color:#475569;">Nhập hàng loạt từ Excel:</label>
-                            <div style="display: flex; gap: 5px; margin-top: 5px;">
-                                <input type="file" id="db-excel-file" accept=".xlsx, .xls, .csv" style="flex: 1; padding: 6px; font-size: 12px; background: white; border: 1px solid #ccc;">
-                                <button style="width: auto; background: #3b82f6; padding: 6px 15px;" onclick="importDanhBaExcel()">Nhập File</button>
-                            </div>
-                            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Quy tắc: Cột A (SĐT/Mã KH) - Cột B (Tên) - Cột C (Link Maps)</div>
-                        </div>
-                    </div>
-                    
-                    <hr style="border:0; border-top: 1px dashed #cbd5e1; margin: 10px 0;">
-                    
+                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 14px; color: #334155;">+ NẠP KHÁCH HÀNG VÀO KHO TỔNG</h3>
                     <div style="display: flex; gap: 10px; align-items: flex-end;">
                         <div style="flex: 1;">
                             <label style="font-size: 11px; font-weight:bold; color:#475569;">Mã KH / SĐT (Bắt buộc):</label>
@@ -171,7 +164,11 @@
                             <label style="font-size: 11px; font-weight:bold; color:#475569;">Tên Khách Hàng:</label>
                             <input type="text" id="db-new-ten" placeholder="Anh B..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
                         </div>
-                        <div style="flex: 2;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 11px; font-weight:bold; color:#475569;">Gán Tuyến Cố Định:</label>
+                            <select id="db-new-tuyen" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;"></select>
+                        </div>
+                        <div style="flex: 1.5;">
                             <label style="font-size: 11px; font-weight:bold; color:#475569;">Tọa độ / Link Maps:</label>
                             <input type="text" id="db-new-coords" placeholder="Dán link vào đây..." style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;">
                         </div>
@@ -179,13 +176,15 @@
                     </div>
                 </div>
                 
-                <div style="margin-bottom: 10px;">
-                    <input type="text" id="db-search" placeholder="🔍 Tìm kiếm khách hàng đã lưu..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;" oninput="renderDanhBaList()">
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" id="db-search" placeholder="🔍 Tìm kiếm khách hàng đã lưu..." style="flex: 2; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;" oninput="renderDanhBaList()">
+                    <select id="db-filter-tuyen" style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box;" onchange="renderDanhBaList()"></select>
                 </div>
                 
-                <div class="db-row db-header">
+                <div class="db-row db-header" style="grid-template-columns: 1.5fr 2fr 1.5fr 3.5fr 1.5fr;">
                     <div>Mã KH (SĐT)</div>
                     <div>Tên Khách Hàng</div>
+                    <div>Tuyến Mặc Định</div>
                     <div>Dữ liệu Tọa độ / Link Maps</div>
                     <div style="text-align: center;">Thao Tác</div>
                 </div>
