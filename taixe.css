@@ -1,40 +1,168 @@
-body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f1f5f9; color: #1e293b; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-.header { background: #1e293b; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
+* { box-sizing: border-box; }
+
+body { 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    margin: 0; 
+    padding: 0; 
+    background: #f1f5f9; 
+    color: #1e293b; 
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh; 
+    height: 100dvh; /* Tương thích chuẩn xác với thanh công cụ trình duyệt di động */
+    overflow: hidden; 
+}
+
+.header { 
+    flex-shrink: 0;
+    background: #1e293b; 
+    color: white; 
+    padding: 10px 15px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    z-index: 1000; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 .header h1 { font-size: 16px; margin: 0; display: flex; align-items: center; gap: 5px; }
-.header select { padding: 6px; border-radius: 4px; border: none; font-weight: bold; outline: none; }
+.header select { 
+    padding: 6px 10px; 
+    border-radius: 6px; 
+    border: none; 
+    font-weight: bold; 
+    outline: none; 
+    background: white; 
+    color: #0f172a; 
+    max-width: 160px;
+}
 
 /* KHU VỰC CHỨA NỘI DUNG */
-.content-area { flex-grow: 1; position: relative; overflow-y: auto; overflow-x: hidden; }
-#tab-map { height: 100%; width: 100%; position: relative; display: block; }
-#tab-list { height: 100%; width: 100%; display: none; padding: 10px; box-sizing: border-box; }
+.content-area { 
+    flex: 1; 
+    position: relative; 
+    width: 100%;
+    overflow: hidden; 
+}
+
+#tab-map { 
+    width: 100%; 
+    height: 100%; 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    display: block; 
+}
+
+#tab-list { 
+    width: 100%; 
+    height: 100%; 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    display: none; 
+    overflow-y: auto; 
+    -webkit-overflow-scrolling: touch; 
+    padding: 10px; 
+}
+
 #map { width: 100%; height: 100%; z-index: 1; }
 
 /* THANH ĐIỀU HƯỚNG BOTTOM (TABS) */
-.bottom-nav { background: #fff; display: flex; border-top: 1px solid #cbd5e1; z-index: 1000; }
-.nav-item { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: bold; color: #64748b; cursor: pointer; }
-.nav-item.active { color: #2563eb; border-top: 3px solid #2563eb; background: #eff6ff; }
+.bottom-nav { 
+    flex-shrink: 0;
+    background: #fff; 
+    display: flex; 
+    border-top: 1px solid #cbd5e1; 
+    z-index: 1000; 
+    padding-bottom: env(safe-area-inset-bottom, 0px); /* Tương thích thanh vuốt đáy màn hình */
+}
+.nav-item { 
+    flex: 1; 
+    text-align: center; 
+    padding: 14px 0; 
+    font-size: 14px; 
+    font-weight: bold; 
+    color: #64748b; 
+    cursor: pointer; 
+    user-select: none;
+}
+.nav-item.active { 
+    color: #2563eb; 
+    border-top: 3px solid #2563eb; 
+    background: #eff6ff; 
+}
 
-/* DANH SÁCH LIST VIEW */
-.trip-card { background: #fff; border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #cbd5e1; }
-.trip-card.thanh-cong { border-left-color: #10b981; opacity: 0.7; }
-.trip-card.that-bai { border-left-color: #ef4444; opacity: 0.7; }
+/* DANH SÁCH THẺ ĐƠN HÀNG */
+.trip-card { 
+    background: #fff; 
+    border-radius: 8px; 
+    padding: 12px; 
+    margin-bottom: 10px; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08); 
+    border-left: 4px solid #cbd5e1; 
+}
+.trip-card.thanh-cong { border-left-color: #10b981; opacity: 0.75; }
+.trip-card.that-bai { border-left-color: #ef4444; opacity: 0.75; }
 
-.stt-badge { display: inline-block; background: #e2e8f0; color: #334155; font-weight: bold; font-size: 11px; padding: 3px 8px; border-radius: 12px; margin-bottom: 8px; }
+.stt-badge { 
+    display: inline-block; 
+    background: #e2e8f0; 
+    color: #334155; 
+    font-weight: bold; 
+    font-size: 11px; 
+    padding: 3px 8px; 
+    border-radius: 12px; 
+}
 .stt-next { background: #fef08a; color: #854d0e; }
 .customer-name { font-size: 15px; font-weight: bold; margin-bottom: 4px; }
 
-.card-actions { display: flex; gap: 8px; margin-top: 10px; }
-.btn { flex: 1; padding: 10px; text-align: center; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13px; color: white; border: none; cursor: pointer; }
-.btn-map { background: #2563eb; } .btn-map:active { background: #1d4ed8; }
+.card-actions { 
+    display: flex; 
+    gap: 6px; 
+    margin-top: 10px; 
+}
+.btn { 
+    flex: 1; 
+    padding: 9px 0; 
+    text-align: center; 
+    border-radius: 6px; 
+    text-decoration: none; 
+    font-weight: bold; 
+    font-size: 12px; 
+    color: white; 
+    border: none; 
+    cursor: pointer; 
+}
+.btn-map { background: #2563eb; } 
+.btn-map:active { background: #1d4ed8; }
 .status-chua-giao { background: #f59e0b; }
 .status-thanh-cong { background: #10b981; } 
 .status-that-bai { background: #ef4444; }
 
 /* THẺ GỢI Ý NỔI TRÊN BẢN ĐỒ */
-.floating-next-card { position: absolute; bottom: 15px; left: 10px; right: 10px; background: white; border-radius: 8px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; border: 2px solid #2563eb; display: none; }
-.floating-next-card .btn-map { display: block; width: 100%; box-sizing: border-box; margin-top: 10px; font-size: 14px; }
+.floating-next-card { 
+    position: absolute; 
+    bottom: 15px; 
+    left: 10px; 
+    right: 10px; 
+    background: white; 
+    border-radius: 8px; 
+    padding: 12px; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+    z-index: 1000; 
+    border: 2px solid #2563eb; 
+    display: none; 
+}
+.floating-next-card .btn-map { 
+    display: block; 
+    width: 100%; 
+    box-sizing: border-box; 
+    margin-top: 8px; 
+    font-size: 13px; 
+    padding: 10px;
+}
 
-/* BẢN ĐỒ: Tooltip trong suốt, viền trắng 2px siêu nét */
+/* TOOLTIP TRÊN BẢN ĐỒ */
 .leaflet-tooltip.driver-tooltip {
     background: transparent !important;
     border: none !important;
@@ -47,7 +175,13 @@ body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f1f5f
     white-space: nowrap;
 }
 .leaflet-tooltip-top:before, .leaflet-tooltip-bottom:before, .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none !important; }
-.leaflet-tooltip.driver-tooltip:hover { z-index: 9999 !important; transform: scale(1.1); transition: 0.1s; }
 
-/* CHẤM GPS CỦA TÀI XẾ */
-.marker-current-loc { background-color: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+/* CHẤM VỊ TRÍ GPS CỦA TÀI XẾ */
+.marker-current-loc { 
+    background-color: #3b82f6; 
+    width: 16px; 
+    height: 16px; 
+    border-radius: 50%; 
+    border: 3px solid white; 
+    box-shadow: 0 0 10px rgba(0,0,0,0.5); 
+}
