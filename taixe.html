@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>App Tài Xế - Live Tracking</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -17,52 +17,43 @@
         </select>
     </div>
     
-    <div class="content-area" id="main-scroll-area">
+    <div class="content-area">
         <!-- TAB BẢN ĐỒ -->
         <div id="tab-map">
             <div id="map"></div>
             
-            <!-- THẺ GỢI Ý NỔI (ĐÃ SẮP XẾP LẠI VỊ TRÍ) -->
+            <!-- THẺ GỢI Ý NỔI TRÊN BẢN ĐỒ -->
             <div id="floating-card" class="floating-next-card">
                 <div style="font-size: 11px; color: #ea580c; font-weight: bold; margin-bottom: 3px;">📍 ĐANG ĐẾN ĐIỂM:</div>
-                <div id="float-name" style="font-size: 18px; font-weight: bold; color: #0f172a;">...</div>
+                <div id="float-name" style="font-size: 16px; font-weight: bold; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">...</div>
                 <a id="float-btn" href="#" target="_blank" class="btn btn-map">🗺️ Chỉ đường (Google Maps)</a>
-                <div id="float-next" style="font-size: 13px; color: #475569; margin-top: 12px; text-align: center;">...</div>
+                <div id="float-next" style="font-size: 12px; color: #475569; margin-top: 8px; text-align: center;">...</div>
             </div>
         </div>
         
-        <!-- TAB DANH SÁCH -->
-        <div id="tab-list" style="display: flex; flex-direction: column;">
+        <!-- TAB DANH SÁCH (Đã gỡ bỏ inline flex làm lỗi chồng lấn) -->
+        <div id="tab-list">
             <div id="loading" style="text-align:center; padding: 20px; color:#64748b;">⏳ Đang tải dữ liệu...</div>
             
-            <!-- Vùng chứa danh sách đơn hàng -->
-            <div id="driver-task-list" style="flex-grow: 1;"></div>
+            <div id="driver-task-list"></div>
 
-            <!-- VÙNG TÙY CHỈNH BẢN ĐỒ (THÊM VÀO CUỐI DANH SÁCH) -->
+            <!-- VÙNG TÙY CHỈNH FONT CHỮ BẢN ĐỒ -->
             <div style="margin-top: 20px; padding: 12px; background: #e2e8f0; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 20px;">
                 <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: bold; color: #333; margin-bottom: 8px;">
                     <input type="checkbox" id="show-labels-chk" checked onchange="loadDriverData(true)" style="margin: 0; width: 16px; height: 16px; cursor: pointer;"> Hiện nhãn tên trên bản đồ
                 </label>
                 <div style="display: flex; gap: 5px;">
-                    <select id="font-family-select" onchange="updateMapFont()" style="flex: 2; padding: 6px; font-size: 11px; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; outline: none;">
-                        <option value="Arial, sans-serif">Font: Arial</option>
-                        <option value="'Times New Roman', Times, serif">Font: Times</option>
-                        <option value="Tahoma, sans-serif">Font: Tahoma</option>
-                        <option value="Verdana, sans-serif">Font: Verdana</option>
-                        <option value="'Courier New', Courier, monospace">Font: Courier</option>
-                        <option value="'Comic Sans MS', cursive">Font: Comic Sans</option>
+                    <select id="font-family-select" onchange="updateMapFont()" style="flex: 2; padding: 6px; font-size: 11px; border: 1px solid #ccc; border-radius: 3px;">
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="Tahoma, sans-serif">Tahoma</option>
+                        <option value="Verdana, sans-serif">Verdana</option>
                     </select>
-                    <select id="font-size-select" onchange="updateMapFont()" style="flex: 1.5; padding: 6px; font-size: 11px; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; outline: none;">
-                        <option value="10px">Cỡ: 10px</option>
-                        <option value="11px">Cỡ: 11px</option>
-                        <option value="12px">Cỡ: 12px</option>
-                        <option value="13px">Cỡ: 13px</option>
-                        <option value="14px" selected>Cỡ: 14px</option>
-                        <option value="15px">Cỡ: 15px</option>
-                        <option value="18px">Cỡ: 18px</option>
-                        <option value="22px">Cỡ: 22px</option>
+                    <select id="font-size-select" onchange="updateMapFont()" style="flex: 1.5; padding: 6px; font-size: 11px; border: 1px solid #ccc; border-radius: 3px;">
+                        <option value="12px">12px</option>
+                        <option value="14px" selected>14px</option>
+                        <option value="16px">16px</option>
                     </select>
-                    <input type="color" id="font-color-select" value="#1d4ed8" onchange="updateMapFont()" style="flex: 0.5; padding: 0; height: 28px; border: 1px solid #ccc; border-radius: 3px; cursor: pointer;">
+                    <input type="color" id="font-color-select" value="#1d4ed8" onchange="updateMapFont()" style="flex: 0.5; padding: 0; height: 28px; border: 1px solid #ccc; border-radius: 3px;">
                 </div>
             </div>
         </div>
