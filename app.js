@@ -37,9 +37,6 @@ function removeVietnameseTones(str) {
     return str;
 }
 
-// ----------------------------------------------------
-// KHÔI PHỤC: CÁC HÀM TÌM KIẾM NHANH (QUICK SEARCH)
-// ----------------------------------------------------
 document.addEventListener("click", function(e) {
     if(e.target.id !== "quick-search-input") {
         let res = document.getElementById("quick-search-results");
@@ -52,10 +49,8 @@ function handleQuickSearch() {
     let resultUl = document.getElementById("quick-search-results");
     resultUl.innerHTML = "";
     if (!keyword) { resultUl.style.display = "none"; return; }
-    
     let filtered = masterData.filter(d => d.ma_khach.toLowerCase().includes(keyword) || removeVietnameseTones(d.ten_khach).includes(keyword));
     if (filtered.length === 0) { resultUl.innerHTML = '<li style="color: #94a3b8;">Không tìm thấy khách hàng...</li>'; resultUl.style.display = "block"; return; }
-    
     filtered.forEach(d => {
         let li = document.createElement("li");
         let missingLabel = (d.lat === null) ? ` <span style="color: #ef4444; font-size:10px;">(⚠️ Thiếu tọa độ)</span>` : "";
@@ -82,29 +77,20 @@ async function addCustomerFromQuickSearch(ma, ten, dulieu) {
     } catch (e) { alert("⚠️ Không kết nối được máy chủ!"); }
 }
 
-// ----------------------------------------------------
-// KẾT NỐI API XE VÀ TUYẾN
-// ----------------------------------------------------
 async function fetchVehiclesFromAPI() {
     try {
         let res = await fetch(`${API_URL}/api/danh-sach-xe`);
         let result = await res.json();
-        if (result.thanh_cong) {
-            vehicles = result.data.length > 0 ? result.data : [];
-            updateVehicleUI();
-        }
-    } catch (e) { console.error("Lỗi lấy danh sách xe"); }
+        if (result.thanh_cong) { vehicles = result.data.length > 0 ? result.data : []; updateVehicleUI(); }
+    } catch (e) { console.error("Lỗi lấy xe"); }
 }
 
 async function fetchTuyensFromAPI() {
     try {
         let res = await fetch(`${API_URL}/api/danh-sach-tuyen`);
         let result = await res.json();
-        if (result.thanh_cong) {
-            tuyens = result.data.length > 0 ? result.data : [];
-            updateTuyenUI();
-        }
-    } catch (e) { console.error("Lỗi lấy danh sách tuyến"); }
+        if (result.thanh_cong) { tuyens = result.data.length > 0 ? result.data : []; updateTuyenUI(); }
+    } catch (e) { console.error("Lỗi lấy tuyến"); }
 }
 
 async function addNewVehicle() {
@@ -112,10 +98,7 @@ async function addNewVehicle() {
     if (!input) return;
     document.getElementById("new-vehicle-name").value = "Đang xử lý...";
     try {
-        await fetch(`${API_URL}/api/them-xe`, {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ten_xe: input })
-        });
+        await fetch(`${API_URL}/api/them-xe`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ten_xe: input }) });
         document.getElementById("new-vehicle-name").value = "";
     } catch(e) { alert("Lỗi mạng!"); }
 }
@@ -123,10 +106,7 @@ async function addNewVehicle() {
 async function deleteVehicle(vName) {
     if (confirm(`Xóa xe [${vName}] trên toàn hệ thống?`)) {
         try {
-            await fetch(`${API_URL}/api/xoa-xe`, {
-                method: "DELETE", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ten_xe: vName })
-            });
+            await fetch(`${API_URL}/api/xoa-xe`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ten_xe: vName }) });
             if(currentVehicleFilter === vName) currentVehicleFilter = "all";
         } catch(e) { alert("Lỗi mạng!"); }
     }
@@ -137,10 +117,7 @@ async function addNewTuyen() {
     if (!input) return;
     document.getElementById("new-tuyen-name").value = "Đang xử lý...";
     try {
-        await fetch(`${API_URL}/api/them-tuyen`, {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ten_tuyen: input })
-        });
+        await fetch(`${API_URL}/api/them-tuyen`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ten_tuyen: input }) });
         document.getElementById("new-tuyen-name").value = "";
     } catch(e) { alert("Lỗi mạng!"); }
 }
@@ -148,10 +125,7 @@ async function addNewTuyen() {
 async function deleteTuyen(tName) {
     if (confirm(`Xóa Tuyến [${tName}] trên toàn hệ thống?`)) {
         try {
-            await fetch(`${API_URL}/api/xoa-tuyen`, {
-                method: "DELETE", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ten_tuyen: tName })
-            });
+            await fetch(`${API_URL}/api/xoa-tuyen`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ten_tuyen: tName }) });
             if(currentTuyenFilter === tName) currentTuyenFilter = "all";
         } catch(e) { alert("Lỗi mạng!"); }
     }
@@ -163,19 +137,13 @@ function updateVehicleUI() {
     let options = vehicles.map(v => `<option value="${v}">${v}</option>`).join('');
     let optionWithDefault = `<option value="">-- Chưa Phân Xe --</option>` + options;
     
-    // Ghi nhớ giá trị đang chọn để chống giật
-    let bulkSel = document.getElementById("bulk-vehicle-select");
-    let singleSel = document.getElementById("single-vehicle-select");
-    let quickSel = document.getElementById("quick-vehicle-select"); // MỚI
-    let oldBulk = bulkSel ? bulkSel.value : "";
-    let oldSingle = singleSel ? singleSel.value : "";
-    let oldQuick = quickSel ? quickSel.value : "";
+    let bulkSel = document.getElementById("bulk-vehicle-select"), singleSel = document.getElementById("single-vehicle-select"), quickSel = document.getElementById("quick-vehicle-select");
+    let oldBulk = bulkSel ? bulkSel.value : "", oldSingle = singleSel ? singleSel.value : "", oldQuick = quickSel ? quickSel.value : "";
     
     if(bulkSel) bulkSel.innerHTML = optionWithDefault;
     if(singleSel) singleSel.innerHTML = optionWithDefault;
     if(quickSel) quickSel.innerHTML = optionWithDefault;
     
-    // Phục hồi giá trị
     if (oldBulk) bulkSel.value = oldBulk;
     if (oldSingle) singleSel.value = oldSingle;
     if (oldQuick) quickSel.value = oldQuick;
@@ -192,23 +160,14 @@ function updateTuyenUI() {
     let optionWithDefault = `<option value="">-- Chọn Tuyến (Tùy chọn) --</option>` + options;
     let optionWithAll = `<option value="all">🌍 TẤT CẢ CÁC TUYẾN</option>` + options;
     
-    // Ghi nhớ giá trị đang chọn để chống giật
-    let bulkSel = document.getElementById("bulk-tuyen-select");
-    let singleSel = document.getElementById("single-tuyen-select");
-    let quickSel = document.getElementById("quick-tuyen-select"); // MỚI
-    let dbNewSel = document.getElementById("db-new-tuyen");
-    
-    let oldBulk = bulkSel ? bulkSel.value : "";
-    let oldSingle = singleSel ? singleSel.value : "";
-    let oldQuick = quickSel ? quickSel.value : "";
-    let oldDbNew = dbNewSel ? dbNewSel.value : "";
+    let bulkSel = document.getElementById("bulk-tuyen-select"), singleSel = document.getElementById("single-tuyen-select"), quickSel = document.getElementById("quick-tuyen-select"), dbNewSel = document.getElementById("db-new-tuyen");
+    let oldBulk = bulkSel ? bulkSel.value : "", oldSingle = singleSel ? singleSel.value : "", oldQuick = quickSel ? quickSel.value : "", oldDbNew = dbNewSel ? dbNewSel.value : "";
     
     if(bulkSel) bulkSel.innerHTML = optionWithDefault;
     if(singleSel) singleSel.innerHTML = optionWithDefault;
     if(quickSel) quickSel.innerHTML = optionWithDefault;
     if(dbNewSel) dbNewSel.innerHTML = optionWithDefault;
     
-    // Phục hồi giá trị
     if (oldBulk) bulkSel.value = oldBulk;
     if (oldSingle) singleSel.value = oldSingle;
     if (oldQuick) quickSel.value = oldQuick;
@@ -223,9 +182,6 @@ function updateTuyenUI() {
     filterSelect.value = currentTuyenFilter;
 }
 
-// ----------------------------------------------------
-// THAO TÁC KÉO THẢ, BẢN ĐỒ VÀ KẾT NỐI
-// ----------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
     const ul = document.getElementById("list-ul");
     if(ul) {
@@ -253,8 +209,7 @@ function getDragAfterElement(container, y) {
 
 async function handleDropAction() {
     const items = [...document.querySelectorAll('#list-ul .customer-item')];
-    let newOrder = [];
-    let currentThuTu = 1;
+    let newOrder = []; let currentThuTu = 1;
     items.forEach((item) => {
         let itemId = parseInt(item.getAttribute('data-id'));
         if(!isNaN(itemId)) {
@@ -264,14 +219,8 @@ async function handleDropAction() {
             currentThuTu++;
         }
     });
-    renderCustomerList(); 
-    drawFixedRoute(); 
-    try {
-        await fetch(`${API_URL}/api/cap-nhat-thu-tu`, {
-            method: "PUT", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newOrder)
-        });
-    } catch(e) { console.log(e); }
+    renderCustomerList(); drawFixedRoute(); 
+    try { await fetch(`${API_URL}/api/cap-nhat-thu-tu`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(newOrder) }); } catch(e) {}
 }
 
 async function drawFixedRoute() {
@@ -320,17 +269,14 @@ function connectWebSocket() {
 
 window.onload = checkLogin;
 function checkLogin() {
-    if (localStorage.getItem("admin_logged_in") === "true") {
-        document.getElementById("login-overlay").style.display = "none";
-        initMap();
-    } else { document.getElementById("login-overlay").style.display = "flex"; }
+    if (localStorage.getItem("admin_logged_in") === "true") { document.getElementById("login-overlay").style.display = "none"; initMap(); } 
+    else { document.getElementById("login-overlay").style.display = "flex"; }
 }
 
 async function loginAdmin() {
     let pwd = document.getElementById("admin-password").value;
     if (!pwd) { alert("Vui lòng nhập mật khẩu!"); return; }
-    let btn = document.querySelector(".login-box button");
-    let oldText = btn.innerText; btn.innerText = "Đang kiểm tra...";
+    let btn = document.querySelector(".login-box button"); let oldText = btn.innerText; btn.innerText = "Đang kiểm tra...";
     try {
         let res = await fetch(`${API_URL}/api/xac-thuc`, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ mat_khau: pwd }) });
         let result = await res.json();
@@ -342,9 +288,8 @@ function logoutAdmin() { localStorage.removeItem("admin_logged_in"); location.re
 
 async function initMap() {
     map = L.map('map').setView([21.0285, 105.8542], 13);
-    L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { 
-    attribution: '© Google Maps' 
-}).addTo(map);
+    // BẢN ĐỒ GOOGLE MAPS SIÊU NHANH
+    L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { attribution: '© Google Maps' }).addTo(map);
     customerMarkersLayer = L.layerGroup().addTo(map);
     masterDataMarkersLayer = L.layerGroup().addTo(map);
     loadFontSettings();
@@ -367,9 +312,7 @@ async function fetchInitialGPS() {
         let result = await res.json();
         if (result.thanh_cong) {
             let activeTrucks = result.data.map(t => t.ten_xe);
-            for (let truckName in liveTruckMarkers) {
-                if (!activeTrucks.includes(truckName)) { map.removeLayer(liveTruckMarkers[truckName]); delete liveTruckMarkers[truckName]; }
-            }
+            for (let truckName in liveTruckMarkers) { if (!activeTrucks.includes(truckName)) { map.removeLayer(liveTruckMarkers[truckName]); delete liveTruckMarkers[truckName]; } }
             result.data.forEach(t => {
                 if(!liveTruckMarkers[t.ten_xe]) { liveTruckMarkers[t.ten_xe] = L.marker([t.lat, t.lng], {icon: getTruckIcon(t.ten_xe)}).bindTooltip("🚚 " + t.ten_xe, {permanent: true, direction: 'top', offset: [0, -20], className: 'truck-tooltip'}).addTo(map); } 
                 else { liveTruckMarkers[t.ten_xe].setLatLng([t.lat, t.lng]); }
@@ -419,8 +362,6 @@ function renderMasterDataOnMap() {
     masterDataMarkersLayer.clearLayers();
     if (!isShowingMasterData) return;
     let showLabels = document.getElementById("show-labels-chk") ? document.getElementById("show-labels-chk").checked : true;
-    
-    // Áp dụng bộ lọc Tuyến cho Danh Bạ Gốc trên bản đồ
     let validData = masterData.filter(d => d.lat !== null && d.lng !== null);
     if(currentTuyenFilter !== "all") validData = validData.filter(d => d.tuyen === currentTuyenFilter);
 
@@ -490,14 +431,16 @@ function extractCoords(input) {
     }
 }
 
+// FIX LỖI KHO KHÔNG LƯU ĐƯỢC
 function addWarehouse() {
-    let name = document.getElementById("warehouse-name").value.trim();
-    if (!name) name = "Kho " + (warehouses.length + 1);
+    let nameInput = document.getElementById("warehouse-name");
+    let name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "Kho " + (warehouses.length + 1);
     let input = document.getElementById("warehouse-coords").value;
     let coords = extractCoords(input);
     if (!coords) { alert("Vui lòng nhập Link Maps hoặc tọa độ hợp lệ!"); return; }
     warehouses.push({ id: 'W' + Date.now(), name: name, lat: coords.lat, lng: coords.lng, rawInput: input });
-    document.getElementById("warehouse-name").value = ""; document.getElementById("warehouse-coords").value = "";
+    if(nameInput) nameInput.value = ""; 
+    document.getElementById("warehouse-coords").value = "";
     saveLocalConfig(); renderCustomerList(); 
 }
 
@@ -515,7 +458,6 @@ async function addSingleCustomer() {
     let input = document.getElementById("single-coords").value.trim();
     let xe = document.getElementById("single-vehicle-select").value;
     let tuyen = document.getElementById("single-tuyen-select").value;
-    
     if (!name) { alert("Vui lòng nhập SĐT hoặc Tên!"); return; }
     document.getElementById("single-name").value = "⏳ ...";
     try {
@@ -535,7 +477,6 @@ async function bulkAddCustomers() {
     let text = document.getElementById("bulk-input").value;
     let lines = text.split('\n').map(l => l.trim()).filter(l => l !== "");
     if (lines.length === 0) { alert("Hãy dán danh sách khách hàng vào ô trống!"); return; }
-    
     let xe = document.getElementById("bulk-vehicle-select").value;
     let tuyen = document.getElementById("bulk-tuyen-select").value;
     document.getElementById("bulk-input").value = "⏳ Đang quét danh bạ gốc và phân tuyến...";
@@ -550,20 +491,31 @@ async function bulkAddCustomers() {
     } catch (e) { alert("⚠️ Không kết nối được máy chủ!"); document.getElementById("bulk-input").value = text; }
 }
 
+// FIX LỖI KHÔNG LƯU ĐƯỢC CHỈNH SỬA ĐƠN HÀNG
 async function saveCustomer(id) {
     let newName = document.getElementById(`edit-name-${id}`).value.trim();
     let newInput = document.getElementById(`edit-input-${id}`).value.trim();
     let newXe = document.getElementById(`edit-xe-${id}`).value;
     let newTuyen = document.getElementById(`edit-tuyen-${id}`).value;
     if (!newName) { alert("Vui lòng nhập tên!"); return; }
+    
+    let btn = document.querySelector(`#edit-name-${id}`).parentElement.querySelector('.btn-save');
+    if(btn) btn.innerText = "Đang lưu...";
+
     try {
         let res = await fetch(`${API_URL}/api/cap-nhat-thong-tin/${id}`, {
             method: "PUT", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ten_khach_hang: newName, du_lieu_goc: newInput, ten_xe: newXe, tuyen: newTuyen })
         });
         let result = await res.json();
-        if (!result.thanh_cong) { alert("❌ Lỗi cập nhật: " + result.loi); }
-    } catch(e) { alert("⚠️ Lỗi kết nối đến máy chủ!"); }
+        if (!result.thanh_cong) { 
+            alert("❌ Lỗi cập nhật: " + result.loi); 
+            if(btn) btn.innerText = "Lưu";
+        } else {
+            // Tải lại để thoát chế độ chỉnh sửa
+            fetchCustomersFromAPI(); 
+        }
+    } catch(e) { alert("⚠️ Lỗi kết nối đến máy chủ!"); if(btn) btn.innerText = "Lưu"; }
 }
 
 async function saveMissingCoords(id) {
@@ -577,6 +529,7 @@ async function saveMissingCoords(id) {
         });
         let result = await res.json();
         if (!result.thanh_cong) { alert("❌ Lỗi cập nhật: " + result.loi); }
+        else { fetchCustomersFromAPI(); }
     } catch(e) { alert("⚠️ Lỗi kết nối!"); }
 }
 
