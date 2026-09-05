@@ -342,7 +342,9 @@ function logoutAdmin() { localStorage.removeItem("admin_logged_in"); location.re
 
 async function initMap() {
     map = L.map('map').setView([21.0285, 105.8542], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { 
+    attribution: '© Google Maps' 
+}).addTo(map);
     customerMarkersLayer = L.layerGroup().addTo(map);
     masterDataMarkersLayer = L.layerGroup().addTo(map);
     loadFontSettings();
