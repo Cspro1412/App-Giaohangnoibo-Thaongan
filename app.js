@@ -38,6 +38,51 @@ function removeVietnameseTones(str) {
 }
 
 // ----------------------------------------------------
+// KHÔI PHỤC: CÁC HÀM TÌM KIẾM NHANH (QUICK SEARCH)
+// ----------------------------------------------------
+document.addEventListener("click", function(e) {
+    if(e.target.id !== "quick-search-input") {
+        let res = document.getElementById("quick-search-results");
+        if(res) res.style.display = "none";
+    }
+});
+
+function handleQuickSearch() {
+    let keyword = removeVietnameseTones(document.getElementById("quick-search-input").value.trim());
+    let resultUl = document.getElementById("quick-search-results");
+    resultUl.innerHTML = "";
+    if (!keyword) { resultUl.style.display = "none"; return; }
+    
+    let filtered = masterData.filter(d => d.ma_khach.toLowerCase().includes(keyword) || removeVietnameseTones(d.ten_khach).includes(keyword));
+    if (filtered.length === 0) { resultUl.innerHTML = '<li style="color: #94a3b8;">Không tìm thấy khách hàng...</li>'; resultUl.style.display = "block"; return; }
+    
+    filtered.forEach(d => {
+        let li = document.createElement("li");
+        let missingLabel = (d.lat === null) ? ` <span style="color: #ef4444; font-size:10px;">(⚠️ Thiếu tọa độ)</span>` : "";
+        li.innerHTML = `<b>${d.ten_khach}</b> <br><span style="color:#64748b;">SĐT: ${d.ma_khach}</span>${missingLabel}`;
+        li.onclick = () => addCustomerFromQuickSearch(d.ma_khach, d.ten_khach, d.du_lieu_goc);
+        resultUl.appendChild(li);
+    });
+    resultUl.style.display = "block";
+}
+
+async function addCustomerFromQuickSearch(ma, ten, dulieu) {
+    let xe = document.getElementById("quick-vehicle-select").value;
+    let tuyen = document.getElementById("quick-tuyen-select").value;
+    document.getElementById("quick-search-input").value = "";
+    document.getElementById("quick-search-results").style.display = "none";
+    try {
+        let res = await fetch(`${API_URL}/api/them-khach-hang`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ma_khach: ma, ten_khach_hang: ten, du_lieu_goc: dulieu, ten_xe: xe, tuyen: tuyen })
+        });
+        let result = await res.json();
+        if (result.thanh_cong) { if(!dulieu) alert(`⚠️ Đã thêm [${ten}]. Khách này đang thiếu tọa độ!`); } 
+        else { alert("❌ Lỗi API: " + result.loi); }
+    } catch (e) { alert("⚠️ Không kết nối được máy chủ!"); }
+}
+
+// ----------------------------------------------------
 // KẾT NỐI API XE VÀ TUYẾN
 // ----------------------------------------------------
 async function fetchVehiclesFromAPI() {
@@ -121,15 +166,19 @@ function updateVehicleUI() {
     // Ghi nhớ giá trị đang chọn để chống giật
     let bulkSel = document.getElementById("bulk-vehicle-select");
     let singleSel = document.getElementById("single-vehicle-select");
+    let quickSel = document.getElementById("quick-vehicle-select"); // MỚI
     let oldBulk = bulkSel ? bulkSel.value : "";
     let oldSingle = singleSel ? singleSel.value : "";
+    let oldQuick = quickSel ? quickSel.value : "";
     
     if(bulkSel) bulkSel.innerHTML = optionWithDefault;
     if(singleSel) singleSel.innerHTML = optionWithDefault;
+    if(quickSel) quickSel.innerHTML = optionWithDefault;
     
     // Phục hồi giá trị
     if (oldBulk) bulkSel.value = oldBulk;
     if (oldSingle) singleSel.value = oldSingle;
+    if (oldQuick) quickSel.value = oldQuick;
     
     let filterSelect = document.getElementById("filter-vehicle-select");
     filterSelect.innerHTML = `<option value="all">🌍 HIỂN THỊ TẤT CẢ XE</option>` + vehicles.map(v => `<option value="${v}">🚛 Xe: ${v}</option>`).join('');
@@ -146,18 +195,23 @@ function updateTuyenUI() {
     // Ghi nhớ giá trị đang chọn để chống giật
     let bulkSel = document.getElementById("bulk-tuyen-select");
     let singleSel = document.getElementById("single-tuyen-select");
+    let quickSel = document.getElementById("quick-tuyen-select"); // MỚI
     let dbNewSel = document.getElementById("db-new-tuyen");
+    
     let oldBulk = bulkSel ? bulkSel.value : "";
     let oldSingle = singleSel ? singleSel.value : "";
+    let oldQuick = quickSel ? quickSel.value : "";
     let oldDbNew = dbNewSel ? dbNewSel.value : "";
     
     if(bulkSel) bulkSel.innerHTML = optionWithDefault;
     if(singleSel) singleSel.innerHTML = optionWithDefault;
+    if(quickSel) quickSel.innerHTML = optionWithDefault;
     if(dbNewSel) dbNewSel.innerHTML = optionWithDefault;
     
     // Phục hồi giá trị
     if (oldBulk) bulkSel.value = oldBulk;
     if (oldSingle) singleSel.value = oldSingle;
+    if (oldQuick) quickSel.value = oldQuick;
     if (oldDbNew) dbNewSel.value = oldDbNew;
     
     let dbFilter = document.getElementById("db-filter-tuyen");
